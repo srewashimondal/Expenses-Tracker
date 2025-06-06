@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Expense Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center px-4 pt-10 pb-20">
+
+  <div class="max-w-xl w-full">
+    <h1 class="text-4xl font-bold text-center text-blue-600 mb-6">💸 My Expense Tracker</h1>
+
+    <!-- Expense Form -->
+    <form id="expenseForm" class="bg-white shadow rounded-lg p-6 space-y-4">
+      <div>
+        <label class="block font-medium text-gray-700">Amount</label>
+        <input type="number" id="amount" placeholder="e.g. 25.99"
+               class="mt-1 w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+      </div>
+      <div>
+        <label class="block font-medium text-gray-700">Category</label>
+        <input type="text" id="category" placeholder="e.g. Food, Travel"
+               class="mt-1 w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+      </div>
+      <div>
+        <label class="block font-medium text-gray-700">Date</label>
+        <input type="date" id="date"
+               class="mt-1 w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+      </div>
+      <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md">
+        ➕ Add Expense
+      </button>
+    </form>
+
+    <!-- Expense List -->
+    <div id="expenses" class="mt-8 space-y-4"></div>
+  </div>
+
+  <script>
+
+    async function loadExpenses() {
+      const res = await fetch('http://127.0.0.1:5000/expenses');
+      const data = await res.json();
+      const container = document.getElementById('expenses');
+      if (data.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500">No expenses added yet.</p>';
+        return;
+      }
+      container.innerHTML = data.map(e => `
+        <div class="bg-white shadow rounded-lg p-4 border-l-4 border-blue-500">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-semibold text-lg">$${e.amount.toFixed(2)}</p>
+              <p class="text-sm text-gray-500">${e.category}</p>
+            </div>
+            <span class="text-sm text-gray-400">${e.date}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const amount = document.getElementById('amount').value;
+      const category = document.getElementById('category').value;
+      const date = document.getElementById('date').value;
+
+      await fetch('http://127.0.0.1:5000/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, category, date })
+      });
+
+      e.target.reset();
+      loadExpenses();
+    });
+
+    loadExpenses(); 
+  </script>
+</body>
+</html>
